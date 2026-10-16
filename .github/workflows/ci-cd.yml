@@ -43,8 +43,6 @@ jobs:
       - name: Frontend Checks (Install & Test)
         working-directory: ./Ecomm-react-tsx-frontend
         run: |
-          echo "Current directory:"
-          pwd
           npm ci
           npm audit || true
           npm run test -- --run
@@ -52,8 +50,6 @@ jobs:
       - name: Backend Checks (Install & Tests)
         working-directory: ./Ecomm-springboot-backend
         run: |
-          echo "Current directory:"
-          pwd
           mvn -B clean verify
 
      
