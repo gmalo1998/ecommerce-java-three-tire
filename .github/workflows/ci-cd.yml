@@ -32,14 +32,14 @@ jobs:
           cache: maven
 
       - name: Frontend Checks (Install & Test)
-        working-directory: frontend
+        working-directory: Ecomm-react-tsx-frontend
         run: |
           npm ci
           npm audit || true
           npm run test -- --run
 
       - name: Backend Checks (Install & Tests)
-        working-directory: backend
+        working-directory: Ecomm-springboot-backend
         run: |
           mvn -B clean verify
 
