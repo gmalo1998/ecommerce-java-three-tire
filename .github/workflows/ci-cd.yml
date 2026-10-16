@@ -1,0 +1,46 @@
+name: Ecommarce workflow
+
+on:
+  push:
+     branches:
+       - main
+
+permissions:
+  contents: read
+jobs: 
+  # ==========================
+  # JOB 1: Test & Scan Code
+  # ==========================
+  code-quality-and-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # SonarQube er full report er jonno dorkar
+
+      - name: Setup Node (For Frontend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup Java (For Backend)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Frontend Checks (Install & Test)
+        working-directory: frontend
+        run: |
+          npm ci
+          npm audit || true
+          npm run test -- --run
+
+      - name: Backend Checks (Install & Tests)
+        working-directory: backend
+        run: |
+          mvn -B clean verify
+
+     
