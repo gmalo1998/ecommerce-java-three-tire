@@ -30,18 +30,29 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-
-      - name: Frontend Checks (Install & Test)
-        working-directory: Ecomm-react-tsx-frontend
+      - name: Debug repository paths
         run: |
+          echo "Repository root:"
+          pwd
+          echo "Root directory contents:"
+          ls -la
+          echo "Frontend and backend folders:"
+          ls -ld Ecomm-react-tsx-frontend Ecomm-springboot-backend
+          echo "Find package.json and pom.xml:"
+          find . -maxdepth 4 \( -name package.json -o -name pom.xml \) -not -path "*/node_modules/*"
+      - name: Frontend Checks (Install & Test)
+        working-directory: ./Ecomm-react-tsx-frontend
+        run: |
+          echo "Current directory:"
           pwd
           npm ci
           npm audit || true
           npm run test -- --run
 
       - name: Backend Checks (Install & Tests)
-        working-directory: Ecomm-springboot-backend
+        working-directory: ./Ecomm-springboot-backend
         run: |
+          echo "Current directory:"
           pwd
           mvn -B clean verify
 
