@@ -45,18 +45,22 @@ jobs:
         working-directory: Ecomm-react-tsx-frontend
         run: npm ci
 
-      # 5. Frontend Vulnerability Scan (Generate HTML Report)
+      # 5. Frontend Vulnerability Scan (Show ID in console & Generate HTML)
       - name: Frontend Vulnerability Scan
         working-directory: Ecomm-react-tsx-frontend
         run: |
-          # npm-audit-html package-ta install kora hochhe HTML report bananor jonno
           npm install -g npm-audit-html
           
-          # Audit run kore tar json data-take HTML-e convert kora hochhe
-          npm audit --audit-level=high --json | npm-audit-html --output npm-audit-report.html || true
+          # Phase 1: HTML Report toiri kora (|| true ache tai ekhane fail korbe na)
+          npm audit --audit-level=high --json > audit.json || true
+          npm-audit-html --input audit.json --output npm-audit-report.html
+          
+          # Phase 2: Console-e Vulnerability ID soho details dekhano abong pipeline fail korano
+          npm audit --audit-level=high
 
       # 5.1 Upload Frontend Audit Report
       - name: Upload Frontend Vulnerability Report
+        if: always() # Phase 2 fail korleo jeno report upload hoy
         uses: actions/upload-artifact@v4
         with:
           name: frontend-audit-report
@@ -64,16 +68,19 @@ jobs:
 
       # 6. Run frontend tests
       - name: Frontend Tests
+        if: success() || failure() # Audit fail korleo jeno Test run hoy (optional)
         working-directory: Ecomm-react-tsx-frontend
         run: npm run test -- --run
 
       # 7. Build and test Spring Boot backend
       - name: Backend Build and Tests
+        if: success() || failure()
         working-directory: Ecomm-springboot-backend
         run: mvn -B clean verify
 
       # 8. Scan backend dependencies using OWASP Dependency-Check
       - name: OWASP Backend Dependency Scan
+        if: success() || failure()
         working-directory: Ecomm-springboot-backend
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
@@ -106,4 +113,3 @@ jobs:
             -Dsonar.organization=gmalo1998
             -Dsonar.sources=Ecomm-react-tsx-frontend,Ecomm-springboot-backend/src/main/java
             -Dsonar.java.binaries=Ecomm-springboot-backend/target/classes
-#8ae40651603954b203d3892897c79b1873c8b708
