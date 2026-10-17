@@ -62,6 +62,7 @@ jobs:
           project: 'Ecommerce-App'
           path: '.' # Frontend abong Backend dutoi scan korbe
           format: 'HTML'
+          out: 'reports'
           args: >
             --failOnCVSS 7
             --enableRetired
