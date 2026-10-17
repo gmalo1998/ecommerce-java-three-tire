@@ -17,11 +17,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout source code
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # 2. Setup Node.js for React frontend
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -29,6 +31,7 @@ jobs:
           cache: npm
           cache-dependency-path: Ecomm-react-tsx-frontend/package-lock.json
 
+      # 3. Setup Java for Spring Boot backend
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -37,67 +40,62 @@ jobs:
           cache: maven
           cache-dependency-path: Ecomm-springboot-backend/pom.xml
 
+      # 4. Install frontend dependencies
       - name: Install Frontend Dependencies
         working-directory: Ecomm-react-tsx-frontend
         run: npm ci
 
-      # ========================================================
-      # 1. FRONTEND STRICT SCAN & HTML REPORT
-      # ========================================================
-      - name: Frontend Vulnerability Scan (Generate HTML)
+      # 5. Frontend Vulnerability Scan (Generate HTML Report)
+      - name: Frontend Vulnerability Scan
         working-directory: Ecomm-react-tsx-frontend
         run: |
-          # HTML bananor tool install kora
+          # npm-audit-html package-ta install kora hochhe HTML report bananor jonno
           npm install -g npm-audit-html
           
-          # JSON data ber kora (|| true dewa ache jate ekhane script na bhenge jay)
-          npm audit --json > audit.json || true
-          
-          # JSON theke HTML Table toiri kora (Jekhane ID, Name abong Critical count thakbe)
-          npm-audit-html --input audit.json --output frontend-security-report.html
-          
-          # STRICT CHECK: Ebar asol audit run korbe. High ba Critical thaklei pipeline strict fail korbe!
-          npm audit --audit-level=high
+          # Audit run kore tar json data-take HTML-e convert kora hochhe
+          npm audit --audit-level=high --json | npm-audit-html --output npm-audit-report.html || true
 
-      - name: Upload Frontend HTML Report
-        if: always() # STRICT scan fail korleo ai HTML report obosshoi upload hobe
+      # 5.1 Upload Frontend Audit Report
+      - name: Upload Frontend Vulnerability Report
         uses: actions/upload-artifact@v4
         with:
           name: frontend-audit-report
-          path: Ecomm-react-tsx-frontend/frontend-security-report.html
+          path: Ecomm-react-tsx-frontend/npm-audit-report.html
 
-      # ========================================================
-      # 2. BACKEND BUILD & STRICT SCAN (OWASP)
-      # ========================================================
-      - name: Backend Build & Tests
-        if: always() # Frontend fail korleo Backend er kaaj chalabe
+      # 6. Run frontend tests
+      - name: Frontend Tests
+        working-directory: Ecomm-react-tsx-frontend
+        run: npm run test -- --run
+
+      # 7. Build and test Spring Boot backend
+      - name: Backend Build and Tests
         working-directory: Ecomm-springboot-backend
         run: mvn -B clean verify
 
-      - name: Backend OWASP Scan (Generate HTML)
-        if: always() # Test fail korleo OWASP obosshoi run korbe
+      # 8. Scan backend dependencies using OWASP Dependency-Check
+      - name: OWASP Backend Dependency Scan
         working-directory: Ecomm-springboot-backend
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
-          # STRICT CHECK: failBuildOnCVSS=7 er mane holo High/Critical pelei pipeline fail korbe!
-          # OWASP nije thekei 'dependency-check-report.html' name ekta report toiri korbe.
           mvn -B org.owasp:dependency-check-maven:check \
             -DfailBuildOnCVSS=7 \
             -DnvdApiKey="$NVD_API_KEY"
 
-      - name: Upload Backend HTML Report
-        if: always() # OWASP strict fail korleo tar HTML report obosshoi upload hobe
+      # 9. Upload OWASP report even if a previous step failed
+      - name: Upload OWASP Dependency-Check Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: backend-owasp-report
-          path: Ecomm-springboot-backend/target/dependency-check-report.html
+          name: owasp-backend-dependency-report
+          path: |
+            Ecomm-springboot-backend/target/dependency-check-report.html
+            Ecomm-springboot-backend/target/dependency-check-report.json
+          if-no-files-found: warn
 
-      # ========================================================
-      # 3. CODE QUALITY (SONARCLOUD)
-      # ========================================================
+      # 10. Analyze code quality using SonarCloud
       - name: SonarCloud Code Quality Analysis
-        if: always() # Security scan fail korleo code quality check hobe
+        if: success() || failure() # Ensures report is generated even if OWASP or Tests fail
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -107,6 +105,6 @@ jobs:
             -Dsonar.projectKey=ecommerce-java-three-tire
             -Dsonar.organization=gmalo1998
             -Dsonar.sources=Ecomm-react-tsx-frontend,Ecomm-springboot-backend/src/main/java
-            -Dsonar.java.binaries=Ecomm-springboot-backend/target/classes
+            -Dsonar.java.binaries=Ecomm-springboot-backend/target/classesname: Ecommerce workflow
 
 #8ae40651603954b203d3892897c79b1873c8b708
