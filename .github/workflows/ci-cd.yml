@@ -1,4 +1,4 @@
-name: Ecommarce workflow
+name: Ecommerce workflow
 
 on:
   push:
@@ -7,17 +7,16 @@ on:
 
 permissions:
   contents: read
+
 jobs: 
-  # ==========================
-  # JOB 1: Test & Scan Code
-  # ==========================
+  ############# JOB 1: Dependency install and unit test #################
   code-quality-and-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # SonarQube er full report er jonno dorkar
+          fetch-depth: 0 # SonarCloud er full report er jonno dorkar
 
       - name: Setup Node (For Frontend)
         uses: actions/setup-node@v4
@@ -30,26 +29,46 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - name: Debug repository paths
-        run: |
-          echo "Repository root:"
-          pwd
-          echo "Root directory contents:"
-          ls -la
-          echo "Frontend and backend folders:"
-          ls -ld Ecomm-react-tsx-frontend Ecomm-springboot-backend
-          echo "Find package.json and pom.xml:"
-          find . -maxdepth 4 \( -name package.json -o -name pom.xml \) -not -path "*/node_modules/*"
+
       - name: Frontend Checks (Install & Test)
-        working-directory: ./Ecomm-react-tsx-frontend
+        working-directory: Ecomm-react-tsx-frontend
         run: |
           npm ci
           npm audit || true
           npm run test -- --run
 
       - name: Backend Checks (Install & Tests)
-        working-directory: ./Ecomm-springboot-backend
+        working-directory: Ecomm-springboot-backend
         run: |
           mvn -B clean verify
 
-     
+      ################### SonarCloud scan, OWASP Dependency, OWASP Report ###################
+      - name: SonarCloud code quality test 
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # PR comment er jonno dorkar
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=ecommerce-java-three-tire
+            -Dsonar.organization=gmalo1998
+            -Dsonar.sources=Ecomm-react-tsx-frontend,Ecomm-springboot-backend/src/main/java
+            -Dsonar.java.binaries=Ecomm-springboot-backend/target/classes
+          #8ae40651603954b203d3892897c79b1873c8b708
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        id: depcheck
+        with:
+          project: 'Ecommerce-App'
+          path: '.' # Frontend abong Backend dutoi scan korbe
+          format: 'HTML'
+          args: >
+            --failOnCVSS 7
+            --enableRetired
+
+      - name: Upload OWASP Dependency Check Report
+        uses: actions/upload-artifact@v4
+        if: always() # Scan fail korleo report jeno upload hoy
+        with:
+          name: owasp-dependency-check-report
+          path: ${{github.workspace}}/reports/dependency-check-report.html
