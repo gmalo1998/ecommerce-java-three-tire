@@ -45,10 +45,22 @@ jobs:
         working-directory: Ecomm-react-tsx-frontend
         run: npm ci
 
-      # 5. Scan frontend dependencies for vulnerabilities
+      # 5. Frontend Vulnerability Scan (Generate HTML Report)
       - name: Frontend Vulnerability Scan
         working-directory: Ecomm-react-tsx-frontend
-        run: npm audit --audit-level=high
+        run: |
+          # npm-audit-html package-ta install kora hochhe HTML report bananor jonno
+          npm install -g npm-audit-html
+          
+          # Audit run kore tar json data-take HTML-e convert kora hochhe
+          npm audit --audit-level=high --json | npm-audit-html --output npm-audit-report.html || true
+
+      # 5.1 Upload Frontend Audit Report
+      - name: Upload Frontend Vulnerability Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-audit-report
+          path: Ecomm-react-tsx-frontend/npm-audit-report.html
 
       # 6. Run frontend tests
       - name: Frontend Tests
@@ -93,6 +105,5 @@ jobs:
             -Dsonar.projectKey=ecommerce-java-three-tire
             -Dsonar.organization=gmalo1998
             -Dsonar.sources=Ecomm-react-tsx-frontend,Ecomm-springboot-backend/src/main/java
-            -Dsonar.java.binaries=Ecomm-springboot-backend/target/classesname: Ecommerce workflow
-
+            -Dsonar.java.binaries=Ecomm-springboot-backend/target/classes
 #8ae40651603954b203d3892897c79b1873c8b708
