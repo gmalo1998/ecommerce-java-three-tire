@@ -99,7 +99,7 @@ const couponSlice = createSlice({
       .addCase(deleteCoupon.fulfilled, (state, action) => {
         state.loading = false;
         state.coupons = state.coupons.filter(
-          (coupon) => coupon.id !== parseInt(action.meta.arg.id.toString())
+          (coupon) => coupon.id !== Number.parseInt(action.meta.arg.id.toString())
         );
       })
       .addCase(

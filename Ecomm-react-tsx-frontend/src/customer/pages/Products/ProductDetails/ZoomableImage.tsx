@@ -73,6 +73,7 @@ onMouseMove={handleMouseMove}
 onMouseUp={handleMouseUp}
 onMouseLeave={handleMouseUp}
 onContextMenu={handleContextMenu}
+role='button'
 >
 <img
 ref={imgRef}

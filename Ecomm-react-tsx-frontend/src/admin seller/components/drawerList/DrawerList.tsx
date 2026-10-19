@@ -51,6 +51,7 @@ const DrawerList = ({ toggleDrawer,menu,menu2 }: DrawerListProps) => {
                         {menu.map((item) => (
                             <div key={item.name}
                                 onClick={handleClick(item)}
+                                role='button'
                                 className="pr-9 cursor-pointer">
                                 <p className={`${item.path === location.pathname ? "bg-primary-color text-white " : "text-primary-color"} flex items-center px-5 py-3 rounded-r-full`}>
                                     <ListItemIcon>{location.pathname === item.path ? item.activeIcon : item.icon}</ListItemIcon>
@@ -64,7 +65,7 @@ const DrawerList = ({ toggleDrawer,menu,menu2 }: DrawerListProps) => {
                     <Divider />
                     <div className="space-y-2">
                         {menu2.map((item) => (
-                            <div onClick={handleClick(item)} className="pr-9 cursor-pointer" key={item.name}>
+                            <div onClick={handleClick(item)} className="pr-9 cursor-pointer" key={item.name} role="button" >
                                 <p className={`${item.path === location.pathname ? " bg-primary-color text-white " : "text-primary-color"} flex items-center px-5 py-3 rounded-r-full`}>
                                     <ListItemIcon>{location.pathname === item.path ? item.activeIcon : item.icon}</ListItemIcon>
                                     <ListItemText primary={item.name} />

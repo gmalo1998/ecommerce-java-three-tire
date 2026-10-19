@@ -56,7 +56,7 @@ const Profile = () => {
                 <div className="col-span-1 lg:border-r lg:pr-5 py-5 h-full  flex flex-row flex-wrap lg:flex-col gap-3">
 
                     {menu.map((item, index) => <div
-                        onClick={() => handleClick(item)}
+                        onClick={() => handleClick(item)} role="button"
                         className={`${menu.length - 1 !== index ? "border-b" : ""} ${item.path == location.pathname ? "bg-primary-color text-white" : ""} px-5 py-3 rounded-md hover:bg-teal-500 hover:text-white cursor-pointer `}>
                         <p>{item.name}</p>
                     </div>)}

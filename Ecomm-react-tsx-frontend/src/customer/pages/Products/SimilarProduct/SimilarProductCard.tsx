@@ -12,6 +12,7 @@ return (
             )
         }
         className="group"
+        role='button'
     >
         <div className="relative h-[300px]">
             <img

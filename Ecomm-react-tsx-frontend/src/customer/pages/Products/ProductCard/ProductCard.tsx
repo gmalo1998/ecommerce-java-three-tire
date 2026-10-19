@@ -93,6 +93,7 @@ navigate(
 `/product-details/${item.category?.categoryId}/${item.title}/${item.id}`
 )
 }
+role="button"
 className="group px-4 relative"
 >
 <div

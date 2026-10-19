@@ -201,6 +201,7 @@ export default function SellersTable() {
                               status.status
                             )
                           }
+                          role='button'
                           value={status.status}
                         >
                           {status.title}
