@@ -58,18 +58,35 @@ Ecommerce-react-spring-boot/
 ## ⚙️ Architecture & CI/CD Flow
 
 
+```mermaid
 graph TD
-    A[Developer Pushes Code] --> B[GitHub Actions CI]
-    B --> C{Tests & Code Quality}
-    C -->|SonarCloud + OWASP| D[Docker Image Build]
-    D --> E[Trivy Vulnerability Scan]
-    E -->|Pass| F[Push to Docker Hub]
-    F --> G[Update Helm Chart/Manifests]
-    G --> H[ArgoCD Detects Changes]
-    H --> I((Kubernetes Cluster))
-    I --> J[Deploy Frontend Pods]
-    I --> K[Deploy Backend Pods]
+    %% Custom Styles
+    classDef dev fill:#2ea44f,color:#fff,stroke:#22863a,stroke-width:2px,rx:5px,ry:5px;
+    classDef ci fill:#0366d6,color:#fff,stroke:#005cc5,stroke-width:2px,rx:5px,ry:5px;
+    classDef security fill:#d73a49,color:#fff,stroke:#cb2431,stroke-width:2px,rx:5px,ry:5px;
+    classDef registry fill:#2496ED,color:#fff,stroke:#0db7ed,stroke-width:2px,rx:5px,ry:5px;
+    classDef gitops fill:#e36209,color:#fff,stroke:#b04c06,stroke-width:2px,rx:5px,ry:5px;
+    classDef k8s fill:#326CE5,color:#fff,stroke:#2654b3,stroke-width:2px,rx:10px,ry:10px;
 
+    %% Continuous Integration
+    subgraph CI [Continuous Integration - CI Flow]
+        direction LR
+        A[💻 Developer Pushes Code]:::dev --> B[⚙️ GitHub Actions CI Build]:::ci
+        B --> C[🛡️ Security: SonarCloud & Trivy]:::security
+        C -->|Pass| D[🐳 Build & Push to Docker Hub]:::registry
+    end
+
+    %% The Bridge / Trigger
+    D -->|GitHub Actions commits new Image Tag| E
+
+    %% Continuous Deployment
+    subgraph CD [Continuous Deployment - GitOps Flow]
+        direction LR
+        E[📝 Helm Manifests Git Repo]:::gitops -->|Auto-Detects Change| F[🐙 ArgoCD Controller]:::gitops
+        F -->|Syncs State| G((☸️ Kubernetes Cluster)):::k8s
+        G --> H[🚀 Live E-commerce Pods]:::k8s
+    end
+```
 
 
 ---
