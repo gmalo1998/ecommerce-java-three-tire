@@ -116,32 +116,69 @@ graph TD
 ## 🗂️ Core Entities (ER Overview)
 
 
+```mermaid
+
 erDiagram
+
   User ||--o{ Address : has
+
   User ||--o{ Order : places
+
   User ||--o{ Review : writes
+
   User ||--o{ Transaction : performs
+
   User ||--|| Wishlist : "has 1"
+
   User ||--|| Cart : "has 1"
 
+
+
   Cart ||--o{ CartItem : contains
+
   CartItem }o--|| Product : refers
 
+
+
   Product }o--|| Category : belongs_to
+
   Product ||--o{ Review : receives
+
   Product }o--|| Seller : offered_by
 
+
+
   Order ||--o{ OrderItem : contains
+
   OrderItem }o--|| Product : refers
+
   Order }o--|| Address : ships_to
+
   PaymentOrder ||--o{ Order : includes
+
+
 
   Coupon }o--o{ User : used_by
 
+
+
   Seller ||--o{ Product : sells
+
   Seller ||--o{ Transaction : participates_in
+
   Seller ||--|| SellerReport : "has 1"
 
+
+
+  VerificationCode ||--|| User : "may belong to"
+
+  VerificationCode ||--|| Seller : "may belong to"
+
+```
+
+
+
+> _Note: Diagram is indicative; actual fields/constraints live in the code._
 
 
 ---
