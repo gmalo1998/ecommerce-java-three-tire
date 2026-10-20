@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+env:
+  GITHUB_TAGS: ${{github.sha}}
 
 permissions:
   contents: read
@@ -110,3 +112,16 @@ jobs:
             -Dsonar.organization=gmalo1998
             -Dsonar.sources=Ecomm-react-tsx-frontend,Ecomm-springboot-backend/src/main/java
             -Dsonar.java.binaries=Ecomm-springboot-backend/target/classes
+      
+      #=================================================================
+      # 4. FRONTEND IMAGE AND BACKEND IMAGE PREPARATION
+      #=================================================================
+      - name: Frontend image generation
+        working-directory: Ecomm-react-tsx-frontend
+        run: |
+           docker build -t frontend_image-${{env.GITHUB_TAGS}} .
+    
+      - name: Backend image generation 
+        working-directory: Ecomm-springboot-backend
+        run: |
+           docker build -t backend_image-${{env.GITHUB_TAGS}}
