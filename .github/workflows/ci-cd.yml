@@ -125,3 +125,11 @@ jobs:
         working-directory: Ecomm-springboot-backend
         run: |
            docker build -t backend_image-${{env.GITHUB_TAGS}} .
+
+#========================================================================
+# FRONTEND AND BACKEND IMAGE TRIVY SCAN AND PUSH IN THE DOCKER REGISTORY
+#========================================================================
+       
+      - name: Frontend image Trivy scan
+        working-directory: Ecomm-react-tsx-frontend
+        
