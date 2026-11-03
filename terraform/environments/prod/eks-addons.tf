@@ -25,18 +25,18 @@ provider "helm" {
 # 1. Install Metrics Server (Mandatory for Kubernetes HPA)
 resource "helm_release" "metrics_server" {
   name       = "metrics-server"
-  repository = "https://kubernetes-sigs.github.io/metrics-server/"
+  repository = "https://kubernetes-sigs.github.io/metrics-server/"  # Ei line-ti add koro
   chart      = "metrics-server"
   namespace  = "kube-system"
   version    = "3.12.1"
-
   depends_on = [module.eks]
 }
+
 
 # 2. Install AWS Load Balancer Controller (Mandatory for creating AWS ALB from K8s Ingress)
 resource "helm_release" "aws_load_balancer_controller" {
   name       = "aws-load-balancer-controller"
-  repository = "https://aws.github.io/eks-charts"
+  repository = "https://aws.github.io/eks-charts"  # Ei line-ti add koro
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
   version    = "1.8.1"
@@ -70,6 +70,20 @@ resource "helm_release" "aws_load_balancer_controller" {
     name  = "vpcId"
     value = module.vpc.vpc_id
   }
+
+  depends_on = [module.eks]
+}
+
+# Install ArgoCD via Helm
+resource "helm_release" "argocd" {
+  name             = "argocd"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  namespace        = "argocd"
+  create_namespace = true
+  
+  # Use a stable version (optional but recommended)
+  version          = "7.6.12" 
 
   depends_on = [module.eks]
 }

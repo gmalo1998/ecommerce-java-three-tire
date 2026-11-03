@@ -18,3 +18,4 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.backend.hpa.targetCPUUtilizationPercentage }}
 {{- end }}
+

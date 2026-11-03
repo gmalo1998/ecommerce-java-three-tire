@@ -31,7 +31,7 @@ spec:
             - secretRef:
                 name: ecomm-db-secret
           resources:
-            {{ toYaml .Values.backend.resources | nindent 12 }}
+            {{- toYaml .Values.backend.resources | nindent 12 }}
           startupProbe:
             httpGet:
               path: /actuator/health/liveness
