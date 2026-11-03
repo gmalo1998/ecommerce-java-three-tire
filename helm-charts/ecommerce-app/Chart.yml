@@ -1,0 +1,7 @@
+# helm-charts/ecommerce-app/Chart.yaml
+apiVersion: v2
+name: ecommerce-app
+description: Production Grade Helm Chart for Three-Tier E-commerce App
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

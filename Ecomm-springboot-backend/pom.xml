@@ -115,7 +115,17 @@
 			<groupId>com.jayway.jsonpath</groupId>
 			<artifactId>json-path</artifactId>
 		</dependency>
+<!-- Spring Boot Actuator for K8s Liveness/Readiness Probes -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
 
+<!-- Micrometer Prometheus Registry for Grafana/Prometheus Monitoring -->
+<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-registry-prometheus</artifactId>
+</dependency>
 	</dependencies>
 
 	<build>
