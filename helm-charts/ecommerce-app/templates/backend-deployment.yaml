@@ -30,6 +30,27 @@ spec:
                 name: ecomm-config
             - secretRef:
                 name: ecomm-db-secret
+          env:
+            - name: SPRING_MAIL_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: ecomm-db-secret
+                  key: SPRING_MAIL_HOST
+            - name: SPRING_MAIL_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: ecomm-db-secret
+                  key: SPRING_MAIL_PORT
+            - name: SPRING_MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ecomm-db-secret
+                  key: SPRING_MAIL_USERNAME
+            - name: SPRING_MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ecomm-db-secret
+                  key: SPRING_MAIL_PASSWORD
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
           startupProbe:
