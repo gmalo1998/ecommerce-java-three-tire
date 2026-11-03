@@ -8,7 +8,7 @@ RUN npm install --legacy-peer-deps
 
 COPY . .
 # Vite build
-RUN npm run build
+RUN npx vite build
 
 # Stage 2: Production Nginx Server
 FROM nginx:1.25-alpine
