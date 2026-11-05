@@ -56,6 +56,17 @@ spec:
                 secretKeyRef:
                   name: ecomm-db-secret
                   key: STRIPE_API_KEY
+            # --- Razorpay Secrets Added Below ---
+            - name: RAZORPAY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecomm-db-secret
+                  key: RAZORPAY_API_KEY
+            - name: RAZORPAY_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ecomm-db-secret
+                  key: RAZORPAY_API_SECRET
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
           startupProbe:
