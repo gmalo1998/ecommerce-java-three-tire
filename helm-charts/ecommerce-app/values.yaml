@@ -4,7 +4,7 @@ global:
 
 aws:
   region: ap-south-1
-  iamRoleArn: "arn:aws:iam::975324005004:role/ecomm-prod-eks-external-secrets-role" # তোমার সঠিক IAM Role ARN এখানে বসিয়ে দেবে
+  iamRoleArn: "arn:aws:iam::975324005004:role/ecomm-prod-eks-external-secrets-role" # তোমার সঠিক IAM Role ARN এখানে বসানো আছে
 
 frontend:
   replicaCount: 2
