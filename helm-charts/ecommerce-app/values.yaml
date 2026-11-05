@@ -8,7 +8,7 @@ aws:
 frontend:
   replicaCount: 2
   image:
-    repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecomm-three-tier-frontend
+    repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecommerce-frontend
     tag: "latest"
     pullPolicy: IfNotPresent
   service:
@@ -30,7 +30,7 @@ frontend:
 backend:
   replicaCount: 2
   image:
-    repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecomm-three-tier-backend
+    repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecommerce-backend
     tag: "latest"
     pullPolicy: IfNotPresent
   service:
