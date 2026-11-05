@@ -4,6 +4,7 @@ global:
 
 aws:
   region: ap-south-1
+  iamRoleArn: "arn:aws:iam::975324005004:role/ecomm-prod-eks-external-secrets-role" # তোমার সঠিক IAM Role ARN এখানে বসিয়ে দেবে
 
 frontend:
   replicaCount: 2
@@ -49,4 +50,4 @@ backend:
     maxReplicas: 6
     targetCPUUtilizationPercentage: 75
   env:
-    springProfile: prod
+    SPRING_PROFILES_ACTIVE: "prod"
