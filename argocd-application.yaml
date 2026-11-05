@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ecommerce-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/gmalo1998/ecommerce-java-three-tire.git'
+    targetRevision: HEAD
+    path: helm-charts/ecommerce-app
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: ecommerce-apps
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true  # <-- Eta thaka khub dorkar
