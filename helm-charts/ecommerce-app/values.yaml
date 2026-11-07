@@ -10,7 +10,7 @@ frontend:
   replicaCount: 2
   image:
     repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecommerce-frontend
-    tag: "latest"
+    tag: "6390f83c07e22f3499a15e6ce6239879f44fcefa"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -32,7 +32,7 @@ backend:
   replicaCount: 2
   image:
     repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecommerce-backend
-    tag: "latest"
+    tag: "6390f83c07e22f3499a15e6ce6239879f44fcefa"
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
