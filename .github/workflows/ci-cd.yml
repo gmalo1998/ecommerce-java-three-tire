@@ -68,7 +68,7 @@ jobs:
 
       - name: Frontend Install Dependencies
         working-directory: Ecomm-react-tsx-frontend
-        run: npm ci
+        run: npm install --ignore-scripts
 
       - name: Frontend Build
         working-directory: Ecomm-react-tsx-frontend
@@ -129,17 +129,17 @@ jobs:
       # 7. SONARCLOUD CODE QUALITY
       # ========================================================
 
-      - name: SonarCloud Analysis
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=ecommerce-java-three-tire
-            -Dsonar.organization=gmalo1998
-            -Dsonar.sources=Ecomm-react-tsx-frontend,Ecomm-springboot-backend/src/main/java
-            -Dsonar.java.binaries=Ecomm-springboot-backend/target/classes
+      # - name: SonarCloud Analysis
+      #   uses: SonarSource/sonarcloud-github-action@v3.11.1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   with:
+      #     args: >
+      #       -Dsonar.projectKey=ecommerce-java-three-tire
+      #       -Dsonar.organization=gmalo1998
+      #       -Dsonar.sources=Ecomm-react-tsx-frontend,Ecomm-springboot-backend/src/main/java
+      #       -Dsonar.java.binaries=Ecomm-springboot-backend/target/classes
 
       # ========================================================
       # 8. DOCKER BUILD

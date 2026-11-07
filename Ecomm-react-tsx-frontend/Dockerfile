@@ -4,7 +4,7 @@ FROM node:24-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+RUN npm ci
 
 COPY . .
 # Vite build
