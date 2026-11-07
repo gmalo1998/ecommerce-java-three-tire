@@ -223,7 +223,7 @@ jobs:
       - name: Install PyYAML
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          python3 -m pip install --user PyYAML
+          python3 -m pip install --user --break-system-packages PyYAML
 
       - name: Update Helm Image Tags
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
