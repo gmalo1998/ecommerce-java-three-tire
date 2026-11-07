@@ -1,25 +1,25 @@
 # terraform/modules/eks/main.tf
 module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.0"
-  cluster_name    = var.cluster_name
-  cluster_version = "1.31"
+  source                          = "terraform-aws-modules/eks/aws"
+  version                         = "~> 20.0"
+  cluster_name                    = var.cluster_name
+  cluster_version                 = "1.31"
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
 
   # Gives the Terraform IAM identity cluster-admin access automatically
   enable_cluster_creator_admin_permissions = true
-  vpc_id                   = var.vpc_id
-  subnet_ids               = var.private_subnets
-  control_plane_subnet_ids = var.private_subnets
+  vpc_id                                   = var.vpc_id
+  subnet_ids                               = var.private_subnets
+  control_plane_subnet_ids                 = var.private_subnets
 
   # Enable OIDC Provider for IRSA (Needed for AWS Load Balancer Controller & EBS CSI)
   enable_irsa = true
   cluster_addons = {
-    coredns                = { most_recent = true }
-    kube-proxy             = { most_recent = true }
-    vpc-cni                = { most_recent = true }
-    aws-ebs-csi-driver     = {
+    coredns    = { most_recent = true }
+    kube-proxy = { most_recent = true }
+    vpc-cni    = { most_recent = true }
+    aws-ebs-csi-driver = {
       most_recent              = true
       service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
     }
@@ -50,8 +50,8 @@ module "eks" {
 
 # IAM Role for EBS CSI Driver (Required for PVCs in Prometheus/Grafana/Stateful workloads)
 module "ebs_csi_irsa_role" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 5.30"
+  source                = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version               = "~> 5.30"
   role_name             = "${var.cluster_name}-ebs-csi-role"
   attach_ebs_csi_policy = true
 
@@ -110,6 +110,7 @@ output "lb_controller_role_arn" {
   value = module.lb_controller_irsa_role.iam_role_arn
 }
 
+
 variable "project_name" {}
 variable "cluster_name" {}
 variable "vpc_id" {}
@@ -119,3 +120,7 @@ variable "runner_iam_role_arn" {}
 output "cluster_name" { value = module.eks.cluster_name }
 output "cluster_endpoint" { value = module.eks.cluster_endpoint }
 output "oidc_provider_arn" { value = module.eks.oidc_provider_arn }
+output "cluster_oidc_issuer_url" {
+  description = "EKS cluster OIDC issuer URL"
+  value       = module.eks.cluster_oidc_issuer_url
+}
