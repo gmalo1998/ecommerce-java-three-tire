@@ -9,34 +9,52 @@ on:
       - main
 
 env:
-  GITHUB_TAGS: ${{github.sha}}
+  GITHUB_TAGS: ${{ github.sha }}
   AWS_REGION: ap-south-1
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-south-1.amazonaws.com
   FRONTEND_REPO: ecomm-three-tier-frontend
   BACKEND_REPO: ecomm-three-tier-backend
 
 permissions:
-  contents: write # Required to push Helm chart updates back to the repo
+  contents: write
+
+concurrency:
+  group: ecommerce-ci-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build-test-and-scan:
     name: Build, Test, Security Scan & Deploy
-    runs-on: [self-hosted, aws-prod] # Uses our EC2 Runner with IAM Roles
+    runs-on: [self-hosted, aws-prod]
 
     steps:
+
+      # ========================================================
+      # 1. CHECKOUT
+      # ========================================================
+
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.ref }}
 
-      - name: Setup Node.js (For Frontend)
+      # ========================================================
+      # 2. SETUP NODE.JS
+      # ========================================================
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Changed to 20 to match runner script
+          node-version: '20'
           cache: npm
           cache-dependency-path: Ecomm-react-tsx-frontend/package-lock.json
 
-      - name: Setup Java (For Backend)
+      # ========================================================
+      # 3. SETUP JAVA
+      # ========================================================
+
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -45,8 +63,9 @@ jobs:
           cache-dependency-path: Ecomm-springboot-backend/pom.xml
 
       # ========================================================
-      # 1. FRONTEND: INSTALL, BUILD, TEST & OWASP (NPM AUDIT)
+      # 4. FRONTEND BUILD AND TEST
       # ========================================================
+
       - name: Frontend Install Dependencies
         working-directory: Ecomm-react-tsx-frontend
         run: npm ci
@@ -57,51 +76,60 @@ jobs:
 
       - name: Frontend Tests
         working-directory: Ecomm-react-tsx-frontend
-        run: npm run test -- --run || true # Allowing to pass if tests aren't fully set up yet
+        run: npm run test -- --run
 
-      - name: Frontend Vulnerability Scan (Strict + HTML Report)
-        if: success() || failure()
+      - name: Frontend Vulnerability Scan
         working-directory: Ecomm-react-tsx-frontend
         run: |
           npm audit --json > audit.json || true
-          npx --ignore-scripts npm-audit-html --input audit.json --output frontend-security-report.html
-          npm audit --audit-level=high || true # Remove || true if you want it to fail pipeline
 
-      - name: Upload Frontend HTML Report
+          npx --ignore-scripts npm-audit-html \
+            --input audit.json \
+            --output frontend-security-report.html
+
+          npm audit --audit-level=high
+
+      - name: Upload Frontend Audit Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: frontend-audit-report
           path: Ecomm-react-tsx-frontend/frontend-security-report.html
+          if-no-files-found: ignore
 
       # ========================================================
-      # 2. BACKEND: INSTALL, BUILD, TEST & OWASP
+      # 5. BACKEND BUILD AND TEST
       # ========================================================
-      - name: Backend Build & Tests (Install, Compile, Test)
-        if: always()
+
+      - name: Backend Build & Tests
         working-directory: Ecomm-springboot-backend
         run: mvn -B clean verify
 
-      - name: Backend OWASP Scan (Strict + HTML Report)
-        if: always()
+      # ========================================================
+      # 6. OWASP DEPENDENCY CHECK
+      # ========================================================
+
+      - name: Backend OWASP Dependency Check
         working-directory: Ecomm-springboot-backend
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
-          mvn clean install -Ddependency-check.skip=true
+          mvn -B org.owasp:dependency-check-maven:check \
+            -Dnvd.api.key="$NVD_API_KEY"
 
-      - name: Upload Backend HTML Report
+      - name: Upload Backend OWASP Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backend-owasp-report
           path: Ecomm-springboot-backend/target/dependency-check-report.html
+          if-no-files-found: ignore
 
       # ========================================================
-      # 3. CODE QUALITY: SONARCLOUD
+      # 7. SONARCLOUD CODE QUALITY
       # ========================================================
-      - name: SonarCloud Code Quality Analysis
-        if: always()
+
+      - name: SonarCloud Analysis
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -114,57 +142,117 @@ jobs:
             -Dsonar.java.binaries=Ecomm-springboot-backend/target/classes
 
       # ========================================================
-      # 4. DOCKER BUILD
+      # 8. DOCKER BUILD
       # ========================================================
-      - name: Frontend image generation
-        working-directory: Ecomm-react-tsx-frontend
+
+      - name: Build Frontend Docker Image
         run: |
-           docker build -t frontend_image-${{env.GITHUB_TAGS}} .
-    
-      - name: Backend image generation 
-        working-directory: Ecomm-springboot-backend
+          docker build \
+            -t frontend_image-${GITHUB_TAGS} \
+            ./Ecomm-react-tsx-frontend
+
+      - name: Build Backend Docker Image
         run: |
-           docker build -t backend_image-${{env.GITHUB_TAGS}} .
+          docker build \
+            -t backend_image-${GITHUB_TAGS} \
+            ./Ecomm-springboot-backend
 
       # ========================================================
-      # 5. TRIVY SCAN & PUSH TO AWS ECR
+      # 9. TRIVY SECURITY SCAN
       # ========================================================
-      - name: Frontend Image Trivy Scan
-        run: |
-          trivy image --severity HIGH,CRITICAL frontend_image-${{env.GITHUB_TAGS}}
 
-      - name: Backend Image Trivy Scan
+      - name: Frontend Trivy Scan
         run: |
-          trivy image --severity HIGH,CRITICAL backend_image-${{env.GITHUB_TAGS}}
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --exit-code 1 \
+            frontend_image-${GITHUB_TAGS}
+
+      - name: Backend Trivy Scan
+        run: |
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --exit-code 1 \
+            backend_image-${GITHUB_TAGS}
+
+      # ========================================================
+      # 10. AWS ECR LOGIN
+      # ========================================================
 
       - name: Login to Amazon ECR
-        if: github.event_name == 'push' # Only push to ECR on merge to main, not on PRs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+          aws ecr get-login-password --region "$AWS_REGION" |
+            docker login \
+              --username AWS \
+              --password-stdin "$ECR_REGISTRY"
+
+      # ========================================================
+      # 11. PUSH DOCKER IMAGES TO ECR
+      # ========================================================
 
       - name: Tag and Push Images to ECR
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          # Tag images with ECR registry URL
-          docker tag frontend_image-${{env.GITHUB_TAGS}} $ECR_REGISTRY/$FRONTEND_REPO:${{env.GITHUB_TAGS}}
-          docker tag backend_image-${{env.GITHUB_TAGS}} $ECR_REGISTRY/$BACKEND_REPO:${{env.GITHUB_TAGS}}
-          
-          # Push to ECR
-          docker push $ECR_REGISTRY/$FRONTEND_REPO:${{env.GITHUB_TAGS}}
-          docker push $ECR_REGISTRY/$BACKEND_REPO:${{env.GITHUB_TAGS}}
+          docker tag frontend_image-${GITHUB_TAGS} \
+            "$ECR_REGISTRY/$FRONTEND_REPO:$GITHUB_TAGS"
+
+          docker tag backend_image-${GITHUB_TAGS} \
+            "$ECR_REGISTRY/$BACKEND_REPO:$GITHUB_TAGS"
+
+          docker push "$ECR_REGISTRY/$FRONTEND_REPO:$GITHUB_TAGS"
+
+          docker push "$ECR_REGISTRY/$BACKEND_REPO:$GITHUB_TAGS"
 
       # ========================================================
-      # 6. GITOPS: UPDATE HELM CHARTS
+      # 12. GITOPS - UPDATE HELM VALUES
       # ========================================================
-      - name: Update Helm values.yaml (GitOps)
-        if: github.event_name == 'push'
+
+      - name: Update Helm Image Tags
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          # Update the image tags in Helm values.yaml
-          sed -i "s|tag:.*|tag: \"${{env.GITHUB_TAGS}}\"|g" helm-charts/ecommerce-app/values.yaml
-          
-          # Commit and push changes back to repo
-          git config --global user.name "GitHub Actions Bot"
-          git config --global user.email "actions@github.com"
+          python3 - <<'PY'
+          import yaml
+          import os
+
+          path = "helm-charts/ecommerce-app/values.yaml"
+
+          with open(path) as f:
+              values = yaml.safe_load(f)
+
+          tag = os.environ["GITHUB_TAGS"]
+
+          values["frontend"]["image"]["tag"] = tag
+          values["backend"]["image"]["tag"] = tag
+
+          with open(path, "w") as f:
+              yaml.safe_dump(values, f, sort_keys=False)
+
+          print(f"Frontend image tag: {tag}")
+          print(f"Backend image tag: {tag}")
+          PY
+
+      # ========================================================
+      # 13. COMMIT AND PUSH GITOPS CHANGES
+      # ========================================================
+
+      - name: Commit and Push Helm Changes
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
           git add helm-charts/ecommerce-app/values.yaml
-          git commit -m "chore(deploy): Update image tags for commit ${{env.GITHUB_TAGS}}" || echo "No changes to commit"
-          git push origin main
+
+          if git diff --cached --quiet; then
+            echo "No Helm changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore(deploy): Update image tags for commit ${GITHUB_TAGS}"
+
+          git fetch origin main
+
+          git rebase origin/main
+
+          git push origin HEAD:main

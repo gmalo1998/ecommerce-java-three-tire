@@ -4,4 +4,4 @@ metadata:
   name: ecomm-config
   namespace: {{ .Release.Namespace }}
 data:
-  SPRING_PROFILES_ACTIVE: "{{ .Values.backend.env.springProfile }}"
+  SPRING_PROFILES_ACTIVE: {{ .Values.backend.env.SPRING_PROFILES_ACTIVE | quote }}

@@ -1,15 +1,14 @@
-# helm-charts/ecommerce-app/values.yaml
 global:
   environment: prod
 
 aws:
   region: ap-south-1
-  iamRoleArn: "arn:aws:iam::975324005004:role/ecomm-prod-eks-external-secrets-role" # তোমার সঠিক IAM Role ARN এখানে বসানো আছে
+  iamRoleArn: "arn:aws:iam::975324005004:role/ecomm-prod-eks-external-secrets-role"
 
 frontend:
   replicaCount: 2
   image:
-    repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecommerce-frontend
+    repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecomm-three-tier-frontend
     tag: "latest"
     pullPolicy: IfNotPresent
   service:
@@ -31,7 +30,7 @@ frontend:
 backend:
   replicaCount: 2
   image:
-    repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecommerce-backend
+    repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecomm-three-tier-backend
     tag: "latest"
     pullPolicy: IfNotPresent
   service:
