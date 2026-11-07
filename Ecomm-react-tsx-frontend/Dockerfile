@@ -11,7 +11,11 @@ COPY . .
 RUN npx vite build
 
 # Stage 2: Production Nginx Server
-FROM nginx:1.25-alpine
+# Stage 2: Production Nginx Server (Updated to latest stable tag with security patches)
+FROM nginx:1.27-alpine
+
+# Update Alpine system packages to patch CVE vulnerabilities
+RUN apk update && apk upgrade --no-cache
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
