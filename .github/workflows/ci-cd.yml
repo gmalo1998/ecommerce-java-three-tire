@@ -1,3 +1,4 @@
+
 name: Ecommerce CI Pipeline
 
 on:
@@ -23,6 +24,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+
   build-test-and-scan:
     name: Build, Test, Security Scan & Deploy
     runs-on: [self-hosted, aws-prod]
@@ -63,12 +65,12 @@ jobs:
           cache-dependency-path: Ecomm-springboot-backend/pom.xml
 
       # ========================================================
-      # 4. FRONTEND BUILD AND TEST
+      # 4. FRONTEND INSTALL, BUILD AND TEST
       # ========================================================
 
       - name: Frontend Install Dependencies
         working-directory: Ecomm-react-tsx-frontend
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
 
       - name: Frontend Build
         working-directory: Ecomm-react-tsx-frontend
@@ -77,6 +79,10 @@ jobs:
       - name: Frontend Tests
         working-directory: Ecomm-react-tsx-frontend
         run: npm run test -- --run
+
+      # ========================================================
+      # 5. FRONTEND SECURITY AUDIT
+      # ========================================================
 
       - name: Frontend Vulnerability Scan
         working-directory: Ecomm-react-tsx-frontend
@@ -98,7 +104,7 @@ jobs:
           if-no-files-found: ignore
 
       # ========================================================
-      # 5. BACKEND BUILD AND TEST
+      # 6. BACKEND BUILD AND TEST
       # ========================================================
 
       - name: Backend Build & Tests
@@ -106,7 +112,7 @@ jobs:
         run: mvn -B clean verify
 
       # ========================================================
-      # 6. OWASP DEPENDENCY CHECK ****
+      # 7. OWASP DEPENDENCY CHECK
       # ========================================================
 
       - name: Backend OWASP Dependency Check
@@ -126,7 +132,7 @@ jobs:
           if-no-files-found: ignore
 
       # ========================================================
-      # 7. SONARCLOUD CODE QUALITY ***
+      # 8. SONARCLOUD CODE QUALITY
       # ========================================================
 
       # - name: SonarCloud Analysis
@@ -140,10 +146,9 @@ jobs:
       #       -Dsonar.organization=gmalo1998
       #       -Dsonar.sources=Ecomm-react-tsx-frontend,Ecomm-springboot-backend/src/main/java
       #       -Dsonar.java.binaries=Ecomm-springboot-backend/target/classes
- 
 
       # ========================================================
-      # 8. DOCKER BUILD
+      # 9. DOCKER BUILD
       # ========================================================
 
       - name: Build Frontend Docker Image
@@ -159,37 +164,43 @@ jobs:
             ./Ecomm-springboot-backend
 
       # ========================================================
-      # 9. TRIVY SECURITY SCAN
+      # 10. TRIVY SECURITY SCAN
       # ========================================================
 
       - name: Frontend Trivy Scan
         run: |
           trivy image \
+            --scanners vuln,secret \
             --severity HIGH,CRITICAL \
             --exit-code 1 \
+            --no-progress \
             frontend_image-${GITHUB_TAGS}
 
       - name: Backend Trivy Scan
         run: |
           trivy image \
+            --scanners vuln,secret \
             --severity HIGH,CRITICAL \
             --exit-code 1 \
+            --no-progress \
             backend_image-${GITHUB_TAGS}
 
       # ========================================================
-      # 10. AWS ECR LOGIN
+      # 11. AWS ECR LOGIN
       # ========================================================
 
       - name: Login to Amazon ECR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
+          aws sts get-caller-identity
+
           aws ecr get-login-password --region "$AWS_REGION" |
             docker login \
               --username AWS \
               --password-stdin "$ECR_REGISTRY"
 
       # ========================================================
-      # 11. PUSH DOCKER IMAGES TO ECR
+      # 12. PUSH DOCKER IMAGES TO ECR
       # ========================================================
 
       - name: Tag and Push Images to ECR
@@ -206,8 +217,13 @@ jobs:
           docker push "$ECR_REGISTRY/$BACKEND_REPO:$GITHUB_TAGS"
 
       # ========================================================
-      # 12. GITOPS - UPDATE HELM VALUES
+      # 13. GITOPS - UPDATE HELM VALUES
       # ========================================================
+
+      - name: Install PyYAML
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          python3 -m pip install --user PyYAML
 
       - name: Update Helm Image Tags
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -218,7 +234,7 @@ jobs:
 
           path = "helm-charts/ecommerce-app/values.yaml"
 
-          with open(path) as f:
+          with open(path, "r") as f:
               values = yaml.safe_load(f)
 
           tag = os.environ["GITHUB_TAGS"]
@@ -234,14 +250,20 @@ jobs:
           PY
 
       # ========================================================
-      # 13. COMMIT AND PUSH GITOPS CHANGES
+      # 14. COMMIT AND PUSH GITOPS CHANGES
       # ========================================================
 
       - name: Commit and Push Helm Changes
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
         run: |
+          set -e
+
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
+
+          echo "Checking Git status..."
+          git status --short
 
           git add helm-charts/ecommerce-app/values.yaml
 
@@ -250,10 +272,26 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore(deploy): Update image tags for commit ${GITHUB_TAGS}"
+          echo "Creating GitOps commit..."
+
+          git commit \
+            -m "chore(deploy): Update image tags for commit ${GITHUB_TAGS} [skip ci]"
+
+          echo "Stashing remaining workspace changes..."
+
+          git stash push --include-untracked \
+            -m "CI temporary workspace changes"
+
+          echo "Fetching latest main..."
 
           git fetch origin main
 
+          echo "Rebasing latest main..."
+
           git rebase origin/main
 
+          echo "Pushing GitOps changes..."
+
           git push origin HEAD:main
+
+          echo "GitOps update completed successfully."
