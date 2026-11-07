@@ -1,27 +1,32 @@
+
 variable "aws_region" {
-  default = "ap-south-1"
+  description = "AWS deployment region"
+  type        = string
 }
 
 variable "project_name" {
-  default = "ecomm-three-tier"
+  description = "Project name used for resource naming"
+  type        = string
 }
 
 variable "cluster_name" {
-  default = "ecomm-prod-eks"
+  description = "EKS cluster name"
+  type        = string
 }
 
 variable "db_password" {
-  description = "RDS MySQL Master Password"
+  description = "RDS database password"
   type        = string
   sensitive   = true
 }
+
 variable "github_repo_url" {
-  description = "GitHub Repository URL"
-  default     = "https://github.com/gmalo1998/ecommerce-java-three-tire"
+  description = "GitHub repository URL for self-hosted runner"
+  type        = string
 }
 
 variable "github_runner_token" {
-  description = "GitHub Actions Self-Hosted Runner Registration Token"
+  description = "GitHub Actions runner registration token"
   type        = string
   sensitive   = true
 }
