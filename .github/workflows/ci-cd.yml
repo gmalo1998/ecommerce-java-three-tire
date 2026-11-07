@@ -106,7 +106,7 @@ jobs:
         run: mvn -B clean verify
 
       # ========================================================
-      # 6. OWASP DEPENDENCY CHECK
+      # 6. OWASP DEPENDENCY CHECK ****
       # ========================================================
 
       - name: Backend OWASP Dependency Check
