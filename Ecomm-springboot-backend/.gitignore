@@ -33,5 +33,3 @@ build/
 .vscode/
 
 ### Custom ignores ###
-# Ignore sensitive Spring Boot configuration
-src/main/resources/application.properties
