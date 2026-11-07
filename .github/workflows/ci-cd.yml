@@ -126,7 +126,7 @@ jobs:
           if-no-files-found: ignore
 
       # ========================================================
-      # 7. SONARCLOUD CODE QUALITY
+      # 7. SONARCLOUD CODE QUALITY ***
       # ========================================================
 
       # - name: SonarCloud Analysis
@@ -140,6 +140,7 @@ jobs:
       #       -Dsonar.organization=gmalo1998
       #       -Dsonar.sources=Ecomm-react-tsx-frontend,Ecomm-springboot-backend/src/main/java
       #       -Dsonar.java.binaries=Ecomm-springboot-backend/target/classes
+ 
 
       # ========================================================
       # 8. DOCKER BUILD
