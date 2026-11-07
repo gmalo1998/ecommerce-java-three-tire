@@ -1,15 +1,13 @@
 global:
   environment: prod
-
 aws:
   region: ap-south-1
-  iamRoleArn: "arn:aws:iam::975324005004:role/ecomm-prod-eks-external-secrets-role"
-
+  iamRoleArn: arn:aws:iam::975324005004:role/ecomm-prod-eks-external-secrets-role
 frontend:
   replicaCount: 2
   image:
     repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecomm-three-tier-frontend
-    tag: "latest"
+    tag: 82718ccfaef799923f5b2fcf8e701706984b088d
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -26,12 +24,11 @@ frontend:
     minReplicas: 2
     maxReplicas: 5
     targetCPUUtilizationPercentage: 70
-
 backend:
   replicaCount: 2
   image:
     repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecomm-three-tier-backend
-    tag: "latest"
+    tag: 82718ccfaef799923f5b2fcf8e701706984b088d
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -49,4 +46,4 @@ backend:
     maxReplicas: 6
     targetCPUUtilizationPercentage: 75
   env:
-    SPRING_PROFILES_ACTIVE: "prod"
+    SPRING_PROFILES_ACTIVE: prod
