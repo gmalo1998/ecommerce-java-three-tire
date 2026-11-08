@@ -7,7 +7,7 @@ frontend:
   replicaCount: 2
   image:
     repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecomm-three-tier-frontend
-    tag: 7d95d15c728c8687bded646d8161a51ba31e81c3
+    tag: d818b06460ee1c73df9e60613cc32f73242eee6f
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -28,7 +28,7 @@ backend:
   replicaCount: 2
   image:
     repository: 975324005004.dkr.ecr.ap-south-1.amazonaws.com/ecomm-three-tier-backend
-    tag: 7d95d15c728c8687bded646d8161a51ba31e81c3
+    tag: d818b06460ee1c73df9e60613cc32f73242eee6f
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
