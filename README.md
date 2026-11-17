@@ -253,6 +253,8 @@ kubectl get pods -n default
 * Strict **RBAC** implemented at the API level using Spring Security.
 
 ---
+<!-- Test cases-->
+---
 
 ## 📄 License
 
